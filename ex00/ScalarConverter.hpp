@@ -5,19 +5,21 @@
 # include <string>
 # include <climits>
 # include <cfloat>
+# include <sstream>
 
-class ScalarConverter {
-public:
-	static void convert( std::string & literal );
+class ScalarConverter
+{
+	public:
+		static void convert(std::string const literal);
 
-private:
-	ScalarConverter();
-	ScalarConverter( const ScalarConverter & copy );
-	ScalarConverter& operator=( const ScalarConverter & assign );
-	~ScalarConverter();
+	private:
+		ScalarConverter();
+		ScalarConverter(ScalarConverter const & src);
+		~ScalarConverter();
+
+		ScalarConverter& operator=(ScalarConverter const & rhs );
 };
 
-std::ostream & operator<<( std::ostream & out, const ScalarConverter & value );
+std::ostream & operator<<(std::ostream& out, ScalarConverter const & value);
 
 #endif
-

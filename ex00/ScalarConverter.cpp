@@ -1,104 +1,187 @@
 #include "ScalarConverter.hpp"
 
-ScalarConverter::ScalarConverter() {
+ScalarConverter::ScalarConverter()
+{
 	std::cout << "ScalarConverter: Default constructor called" << std::endl;
 }
 
-ScalarConverter::ScalarConverter( const ScalarConverter & copy ) {
+ScalarConverter::ScalarConverter(ScalarConverter const & src)
+{
 	std::cout << "ScalarConverter: Copy constructor called" << std::endl;
-	(void)copy;
+	(void)src;
 }
 
-ScalarConverter & ScalarConverter::operator=( const ScalarConverter & assign ) {
+ScalarConverter& ScalarConverter::operator=(ScalarConverter const & rhs)
+{
 	std::cout << "ScalarConverter: Assignment operator called" << std::endl;
-	if ( this != &assign ) {
-	
-	}
+	(void)rhs;
 	return *this;
 }
 
-ScalarConverter::~ScalarConverter() {
+ScalarConverter::~ScalarConverter()
+{
 	std::cout << "ScalarConverter: Destructor called" << std::endl;
 }
 
-std::ostream& operator<<( std::ostream & out, const ScalarConverter & value ) {
+std::ostream& operator<<( std::ostream& out, ScalarConverter const & value)
+{
 	(void)value;
 	return out;
 }
 
-bool isFloat( std::string & literal ) {
-	int len = literal.length();
-
-	if ( literal[len - 1] == 'f' && literal.substr( 0, len - 1 ).find( '.' ) )
-		return true;
-	return false;
-}
-
-bool isDouble( std::string & literal ) {
-	if ( isFloat( literal ) == false && literal.find( '.' ) != std::string::npos )
-		return true;
-		
-	return false;
-}
-
-bool isChar( std::string & literal ) {
-	int len = literal.length();
+/* You have to first detect the type of the literal passed as a parameter, convert it from
+	string to its actual type, then convert it explicitly to the three other data types. Lastly,
+	display the results as shown below. */
 	
-	if ( len == 1 && !std::isdigit( literal[0] ) && std::isprint( literal[0] ) )
-		return true;
-		
-	return false;
-}
-
-bool isInt( std::string & literal ) {
-	if ( !isFloat( literal ) && !isDouble( literal ) && !isChar( literal ) )
-		return true;
-		
-	return false;
-}
-
-void toChar( std::string & literal ) {
-	if ( isChar( literal ))
-		std::cout << "char: '" << static_cast<char>( literal[0] ) << "'" << std::endl;
-	else if ( isInt( literal ) || isFloat( literal ) || isDouble( literal )) {
-		if ( std::isprint( atoi(literal.c_str() )))
-			std::cout << "char: '" << static_cast<char>( atoi(literal.c_str() ) ) << "'" << std::endl;
-		else
-			std::cout << "char: Non displayable" << std::endl;
+bool	typeLimit(std::string const & literal, std::string type)
+{
+	if (type == "CHAR")
+	{
+		std::stringstream	ss(literal);
+		int	test_limit;
+		ss >> test_limit;
+		if (test_limit > CHAR_MAX || test_limit < CHAR_MIN)
+			return false;
 	}
+	else if (type == "INT")
+	{
+		std::stringstream	ss(literal);
+		long	test_limit;
+		ss >> test_limit;
+		if (test_limit > INT_MAX || test_limit < INT_MIN)
+			return false;
+	}
+	else if (type == "FLOAT")
+	{
+		std::stringstream	ss(literal);
+		double	test_limit;
+		ss >> test_limit;
+		if (test_limit > FLT_MAX || test_limit < FLT_MIN)
+			return false;
+	}
+	else if (type == "DOUBLE")
+	{
+		std::stringstream	ss(literal);
+		long double	test_limit;
+		ss >> test_limit;
+		if (test_limit > DBL_MAX || test_limit < FLT_MIN)
+			return false;
+	}
+	return true;
 }
 
-void toInt( std::string & literal ) {
-    long tmp = atol( literal.c_str() );
-    
-    if ( tmp < INT_MIN || tmp > INT_MAX )
-  		std::cout << "int: impossible" << std::endl;
-    else
-  		std::cout << "int: " << static_cast<int>( tmp ) << std::endl;
+bool	isChar(std::string const & literal)
+{
+	int len = literal.length();
+		
+	if (len == 1 && !std::isdigit(literal[0]))
+		return true;
+		
+	return false;
 }
 
-void toFloat( std::string & literal ) {
-    double tmp = atof( literal.c_str() );
-    
-    if ( tmp < FLT_MIN || tmp > FLT_MAX )
-        std::cout << "float: impossible" << std::endl;
-    else
-  		std::cout << "float: " << static_cast<float>( tmp ) << ".0f" << std::endl;
+bool isFloat(std::string const & literal)
+{
+	std::size_t	dot = literal.find_first_not_of(".");
+	
+	if (literal.length() > 3 && literal.at(literal.length() - 1) == 'f'
+	&& dot != std::string::npos)
+	return true;
+	
+	return false;
 }
 
-void toDouble( std::string & literal ) {
-    char **endptr = NULL;
-    long double tmp = strtold( literal.c_str() , endptr );
-    
-    if ( tmp < LDBL_MIN || tmp > LDBL_MAX )
-        std::cout << "double: impossible" << std::endl;
-    else
-  		std::cout << "double: " << static_cast<double>( tmp ) << std::endl;
+bool isDouble(std::string const & literal)
+{
+	if (!isFloat(literal) && literal.find(".") != std::string::npos)
+	return true;
+	
+	return false;
 }
 
-void ScalarConverter::convert(std::string & literal) {
-	toChar( literal );
-	toInt( literal );
-	toFloat( literal );
-	toDouble( literal );
+bool	isInt(std::string const & literal)
+{
+	return !isFloat(literal) && typeLimit(literal, "INT");
+}
+
+char	toChar(std::string const & literal)
+{
+	std::stringstream	ss(literal);
+	char	c;
+	ss >> c;
+	return c;
+}
+
+int		toInt(std::string const & literal)
+{
+	std::stringstream	ss(literal);
+	int	i;
+
+	ss >> i;
+
+	return i;
+}
+
+float	toFloat(std::string const & literal)
+{
+	std::string	floating = literal.substr(0, literal.length() - 1);
+	std::stringstream	ss(floating);
+	float	f;
+
+	ss >> f;
+
+	return f;
+}
+
+float	toDouble(std::string const & literal)
+{
+	std::stringstream	ss(literal);
+	double	f;
+
+	ss >> f;
+
+	return f;
+}
+
+void ScalarConverter::convert(std::string const literal)
+{
+	if (isChar(literal))
+	{
+		char	c = toChar(literal);
+		if (!std::isprint(c))
+			std::cout << "char: Not displayable" << std::endl;
+		std::cout << "char: '" << c << "'" << std::endl;
+		std::cout << "int: " << static_cast<int>(c) << std::endl;
+		std::cout << "float: " << static_cast<float>(c) << ".0f" << std::endl;
+		std::cout << "double: " << static_cast<double>(c) << ".0" << std::endl;
+	}
+	else if (isInt(literal))
+	{
+		int		i = toInt(literal);
+		std::cout << "char: '" << static_cast<char>(i) << "'" << std::endl;
+		std::cout << "int: " << i << std::endl;
+		std::cout << "float: " << static_cast<float>(i) << ".0f" << std::endl;
+		std::cout << "double: " << static_cast<double>(i) << ".0" << std::endl;
+	}
+	else if (isFloat(literal))
+	{
+		float	f = toFloat(literal);
+		std::cout << "char: '" << static_cast<char>(f) << "'" << std::endl;
+		std::cout << "int: " << static_cast<int>(f) << std::endl;
+		std::cout << "float: " << f;
+		f == toInt(literal) ? std::cout << ".0f" << std::endl : std::cout << "f" << std::endl;
+		std::cout << "double: " << static_cast<double>(f);
+		f == toInt(literal) ? std::cout << ".0" << std::endl : std::cout << std::endl;
+	}
+	else if (isDouble(literal))
+	{
+		double	d = toDouble(literal);
+		std::cout << "char: '" << static_cast<char>(d) << "'" << std::endl;
+		std::cout << "int: " << static_cast<int>(d) << std::endl;
+		std::cout << "float: " << static_cast<float>(d);
+		d == toInt(literal) ? std::cout << ".0f" << std::endl : std::cout << "f" << std::endl;
+		std::cout << "double: " << d;
+		d == toInt(literal) ? std::cout << ".0" << std::endl : std::cout << std::endl;
+	}
+	
 }
