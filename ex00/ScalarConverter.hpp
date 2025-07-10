@@ -2,16 +2,41 @@
 # define SCALARCONVERTER_HPP
 # include <iostream>
 # include <cstdlib>
+#include <iterator>
 # include <string>
 # include <climits>
 # include <cfloat>
 # include <sstream>
 
+enum Type
+{
+	PSEUDO,
+	CHAR,
+	INT,
+	FLOAT,
+	DOUBLE
+};
+	
+union Value
+{
+    char    *pseudo;
+	char	c;
+	int		i;
+	float	f;
+	double	d;
+};
+
+typedef struct	s_type	
+{
+    Type    type;
+    Value   value;
+}           t_type;
+
 class ScalarConverter
 {
 	public:
 		static void convert(std::string const literal);
-
+		
 	private:
 		ScalarConverter();
 		ScalarConverter(ScalarConverter const & src);

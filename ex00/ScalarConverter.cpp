@@ -1,4 +1,8 @@
 #include "ScalarConverter.hpp"
+#include <cctype>
+#include <exception>
+#include <pthread.h>
+#include <string>
 
 ScalarConverter::ScalarConverter()
 {
@@ -29,10 +33,6 @@ std::ostream& operator<<( std::ostream& out, ScalarConverter const & value)
 	return out;
 }
 
-/* You have to first detect the type of the literal passed as a parameter, convert it from
-	string to its actual type, then convert it explicitly to the three other data types. Lastly,
-	display the results as shown below. */
-	
 bool	typeLimit(std::string const & literal, std::string type)
 {
 	if (type == "CHAR")
@@ -99,8 +99,7 @@ bool isDouble(std::string const & literal)
 
 bool	isInt(std::string const & literal)
 {
-	return !isFloat(literal) && !isDouble(literal)
-	    && typeLimit(literal, "INT");
+	return !isFloat(literal) && !isDouble(literal);
 }
 
 char	toChar(std::string const & literal)
@@ -142,45 +141,194 @@ float	toDouble(std::string const & literal)
 	return f;
 }
 
-void ScalarConverter::convert(std::string const literal)
+bool    isPseudoLiteral(std::string const literal)
 {
-	if (isChar(literal))
-	{
-		char	c = toChar(literal);
-		if (!std::isprint(c))
-			std::cout << "char: Not displayable" << std::endl;
-		std::cout << "char: '" << c << "'" << std::endl;
-		std::cout << "int: " << static_cast<int>(c) << std::endl;
-		std::cout << "float: " << static_cast<float>(c) << ".0f" << std::endl;
-		std::cout << "double: " << static_cast<double>(c) << ".0" << std::endl;
-	}
-	else if (isInt(literal))
-	{
-		int		i = toInt(literal);
-		std::cout << "char: '" << static_cast<char>(i) << "'" << std::endl;
-		std::cout << "int: " << i << std::endl;
-		std::cout << "float: " << static_cast<float>(i) << ".0f" << std::endl;
-		std::cout << "double: " << static_cast<double>(i) << ".0" << std::endl;
-	}
-	else if (isFloat(literal))
-	{
-		float	f = toFloat(literal);
-		std::cout << "char: '" << static_cast<char>(f) << "'" << std::endl;
-		std::cout << "int: " << static_cast<int>(f) << std::endl;
-		std::cout << "float: " << f;
-		f == toInt(literal) ? std::cout << ".0f" << std::endl : std::cout << "f" << std::endl;
-		std::cout << "double: " << static_cast<double>(f);
-		f == toInt(literal) ? std::cout << ".0" << std::endl : std::cout << std::endl;
-	}
-	else if (isDouble(literal))
-	{
-		double	d = toDouble(literal);
-		std::cout << "char: '" << static_cast<char>(d) << "'" << std::endl;
-		std::cout << "int: " << static_cast<int>(d) << std::endl;
-		std::cout << "float: " << static_cast<float>(d);
-		d == toInt(literal) ? std::cout << ".0f" << std::endl : std::cout << "f" << std::endl;
-		std::cout << "double: " << d;
-		d == toInt(literal) ? std::cout << ".0" << std::endl : std::cout << std::endl;
-	}
-	
+    return literal == "-inff" || literal == "+inff" || literal == "nanf"
+        || literal == "nan" || literal == "-inf" || literal == "+inf";
+}
+
+void    convertInput(std::string & literal, t_type *input)
+{
+    if (isPseudoLiteral(literal))
+    {
+        input->type = PSEUDO;
+        input->value.pseudo = new char[7];
+        strcpy(input->value.pseudo, literal.c_str());
+    }
+    else if (isChar(literal))
+    {
+        input->type = CHAR;
+        input->value.c = toChar(literal);
+    }
+    else if (isInt(literal))
+    {
+        input->type = INT;
+        input->value.i = toInt(literal);
+    }
+    else if (isFloat(literal))
+    {
+        input->type = FLOAT;
+        input->value.f = toFloat(literal);
+    }
+    else if (isDouble(literal))
+    {
+        input->type = DOUBLE;
+        input->value.d = toDouble(literal);
+    }
+}
+
+void    printChar(t_type *input)
+{
+    switch (input->type)
+    {
+        case PSEUDO:
+            std::cout << "char: impossible" << std::endl;
+            break;
+        case CHAR:
+            std::cout << "char: '" << input->value.c << "'" << std::endl;
+            break;
+        case INT:
+            if (!std::isprint(static_cast<char>(input->value.i)))
+                std::cout << "char: Not displayable" << std::endl;
+            else
+                std::cout << "char: '" << static_cast<char>(input->value.i)
+                    << "'" << std::endl;
+            break;
+        case FLOAT:
+            if (!std::isprint(static_cast<char>(input->value.f)))
+                std::cout << "char: Not displayable" << std::endl;
+            else
+                std::cout << "char: '" << static_cast<char>(input->value.f)
+                    << "'" << std::endl;
+            break;
+        case DOUBLE:
+            if (!std::isprint(static_cast<char>(input->value.d)))
+                std::cout << "char: Not displayable" << std::endl;
+            else
+                std::cout << "char: '" << static_cast<char>(input->value.d)
+                    << "'" << std::endl;
+            break;
+        default:
+            break;
+    }  
+}
+
+void    printInt(t_type *input)
+{
+    switch (input->type)
+    {
+        case PSEUDO:
+            std::cout << "int: impossible" << std::endl;
+            break;
+        case CHAR:
+            std::cout << "int: " << static_cast<int>(input->value.c)
+                << std::endl;
+            break;
+        case INT:
+            std::cout << "int: " << input->value.i << std::endl;
+            break;
+        case FLOAT:
+            std::cout << "int: " << static_cast<int>(input->value.f)
+                << std::endl;
+            break;
+        case DOUBLE:
+            std::cout << "int: " << static_cast<int>(input->value.d)
+                << std::endl;
+            break;
+        default:
+            break;
+    }    
+}
+
+void    printFloat(t_type *input, std::string & literal)
+{
+    switch (input->type)
+    {
+        case PSEUDO:
+            if (!strncmp(input->value.pseudo, "nan", 3)
+                || !strncmp(input->value.pseudo, "nanf", 4))
+                std::cout << "float: nanf" << std::endl;
+            else if (!strncmp(input->value.pseudo, "+inf", 4)
+                || !strncmp(input->value.pseudo, "+inff", 5))
+                std::cout << "float: +inff" << std::endl;
+            else
+                std::cout << "float: -inff" << std::endl;
+            break;
+        case CHAR:
+            std::cout << "float: " << static_cast<float>(input->value.c) 
+                << ".0f" << std::endl;
+            break;
+        case INT:
+            std::cout << "float: " << static_cast<float>(input->value.i)
+                << ".0f" << std::endl;
+            break;
+        case FLOAT:
+            std::cout << "float: " << input->value.f;
+            input->value.f == toInt(literal) ? std::cout << ".0f"
+                << std::endl : std::cout << "f" << std::endl;
+            break;
+        case DOUBLE:
+            std::cout << "float: " << static_cast<float>(input->value.d);
+            input->value.d == toInt(literal) ? std::cout << ".0f"
+                << std::endl : std::cout << "f" << std::endl;
+            break;
+        default:
+            break;
+    }    
+}
+
+void    printDouble(t_type *input, std::string & literal)
+{
+    switch (input->type)
+    {
+        case PSEUDO:
+            if (!strncmp(input->value.pseudo, "nan", 3)
+                || !strncmp(input->value.pseudo, "nanf", 4))
+                std::cout << "double: nan" << std::endl;
+            else if (!strncmp(input->value.pseudo, "+inf", 4)
+                || !strncmp(input->value.pseudo, "+inff", 5))
+                std::cout << "double: +inf" << std::endl;
+            else
+                std::cout << "double: -inf" << std::endl;
+            break;
+        case CHAR:
+            std::cout << "double: " << static_cast<double>(input->value.c) 
+                << ".0" << std::endl;
+            break;
+        case INT:
+            std::cout << "double: " << static_cast<double>(input->value.i)
+                << ".0" << std::endl;
+            break;
+        case FLOAT:
+            std::cout << "double: " << input->value.f;
+            input->value.f == toInt(literal) ? std::cout << ".0"
+                << std::endl : std::cout << std::endl;
+            break;
+        case DOUBLE:
+            std::cout << "double: " << input->value.d;
+            input->value.d == toInt(literal) ? std::cout << ".0"
+                << std::endl : std::cout << std::endl;
+            break;
+        default:
+            break;
+    }    
+}
+
+void    ScalarConverter::convert(std::string literal)
+{
+    t_type  input;
+    
+    if (!isPseudoLiteral(literal) || !isChar(literal) || !isInt(literal)
+        || !isFloat(literal) || !isDouble(literal))
+        throw "Invalid literal";
+         
+    convertInput(literal, &input);
+    
+    printChar(&input);
+    printInt(&input);
+    printFloat(&input, literal);
+    printDouble(&input, literal);
+ 
+	if (input.type == PSEUDO)
+	    delete input.value.pseudo;
 }

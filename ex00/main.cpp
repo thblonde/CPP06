@@ -1,4 +1,5 @@
 #include "ScalarConverter.hpp"
+#include <stdexcept>
 
 int main(int argc, char *argv[])
 {
@@ -9,13 +10,15 @@ int main(int argc, char *argv[])
 	}
 
 	std::string literal = argv[1];
-	ScalarConverter::convert(literal);
-	int	i = 42;
-	float	f = 42.0f;
-
-	if (i == f)
-		std::cout << "OK";
-	else
-		std::cout <<"KO";
+	
+	try 
+	{
+	    ScalarConverter::convert(literal);
+	}
+	catch (const char* & e)
+	{
+	    std::cerr << e << std::endl;
+	}
+	
 	return 0;
 }
