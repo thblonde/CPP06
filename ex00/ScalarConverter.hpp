@@ -2,11 +2,13 @@
 # define SCALARCONVERTER_HPP
 # include <iostream>
 # include <cstdlib>
-#include <iterator>
+# include <iterator>
 # include <string>
 # include <climits>
 # include <cfloat>
 # include <sstream>
+# include <string.h>
+# include <iomanip>
 
 enum Type
 {

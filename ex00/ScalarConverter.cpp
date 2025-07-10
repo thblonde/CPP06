@@ -99,6 +99,12 @@ bool isDouble(std::string const & literal)
 
 bool	isInt(std::string const & literal)
 {
+    for (unsigned int i = 0; i < literal.length(); ++i)
+    {
+        if (std::isalpha(literal[i]))
+            return false;
+    }
+
 	return !isFloat(literal) && !isDouble(literal);
 }
 
@@ -127,7 +133,6 @@ float	toFloat(std::string const & literal)
 	float	f;
 
 	ss >> f;
-
 	return f;
 }
 
@@ -137,7 +142,6 @@ float	toDouble(std::string const & literal)
 	double	f;
 
 	ss >> f;
-
 	return f;
 }
 
@@ -162,19 +166,27 @@ void    convertInput(std::string & literal, t_type *input)
     }
     else if (isInt(literal))
     {
+        if (!typeLimit(literal, "INT"))
+            throw "Int overflow";
         input->type = INT;
         input->value.i = toInt(literal);
     }
     else if (isFloat(literal))
     {
+        if (!typeLimit(literal, "FLOAT"))
+            throw "Float overflow";
         input->type = FLOAT;
         input->value.f = toFloat(literal);
     }
     else if (isDouble(literal))
     {
+        if (!typeLimit(literal, "DOUBLE"))
+            throw "Double overflow";
         input->type = DOUBLE;
         input->value.d = toDouble(literal);
     }
+    else
+        throw "Invalid literal";
 }
 
 void    printChar(t_type *input)
@@ -213,7 +225,7 @@ void    printChar(t_type *input)
     }  
 }
 
-void    printInt(t_type *input)
+void    printInt(t_type *input, std::string & literal)
 {
     switch (input->type)
     {
@@ -228,12 +240,18 @@ void    printInt(t_type *input)
             std::cout << "int: " << input->value.i << std::endl;
             break;
         case FLOAT:
-            std::cout << "int: " << static_cast<int>(input->value.f)
+            if (!typeLimit(literal, "INT"))
+                std::cout << "int: overflow" << std::endl;
+            else
+                std::cout << "int: " << static_cast<int>(input->value.f)
                 << std::endl;
             break;
         case DOUBLE:
-            std::cout << "int: " << static_cast<int>(input->value.d)
-                << std::endl;
+            if (!typeLimit(literal, "INT"))
+                std::cout << "int: overflow" << std::endl;
+            else
+                std::cout << "int: " << static_cast<int>(input->value.d)
+                    << std::endl;
             break;
         default:
             break;
@@ -259,18 +277,32 @@ void    printFloat(t_type *input, std::string & literal)
                 << ".0f" << std::endl;
             break;
         case INT:
-            std::cout << "float: " << static_cast<float>(input->value.i)
-                << ".0f" << std::endl;
+            std::cout << "float: " << static_cast<float>(input->value.i);
+             if (input->value.d >= 1e7 || input->value.d <= 1e-4)
+                std::cout << "f" << std::endl;
+            else
+                std::cout << ".0f" << std::endl;
             break;
         case FLOAT:
             std::cout << "float: " << input->value.f;
-            input->value.f == toInt(literal) ? std::cout << ".0f"
-                << std::endl : std::cout << "f" << std::endl;
+             if (input->value.f >= 1e7 || input->value.f <= 1e-4)
+                std::cout << "f" << std::endl;
+            else
+                input->value.f == toInt(literal) ? std::cout << ".0f"
+                    << std::endl : std::cout << "f" << std::endl;
             break;
         case DOUBLE:
-            std::cout << "float: " << static_cast<float>(input->value.d);
-            input->value.d == toInt(literal) ? std::cout << ".0f"
-                << std::endl : std::cout << "f" << std::endl;
+            if (!typeLimit(literal, "FLOAT"))
+                std::cout << "float: overflow" << std::endl;
+            else
+            {
+                std::cout << "float: " << static_cast<float>(input->value.d);
+                if (input->value.d >= 1e7 || input->value.d <= 1e-4)
+                    std::cout << std::endl;
+                else
+                    input->value.d == toInt(literal) ? std::cout << ".0f"
+                        << std::endl : std::cout << "f" << std::endl;
+            }
             break;
         default:
             break;
@@ -296,18 +328,27 @@ void    printDouble(t_type *input, std::string & literal)
                 << ".0" << std::endl;
             break;
         case INT:
-            std::cout << "double: " << static_cast<double>(input->value.i)
-                << ".0" << std::endl;
+            std::cout << "double: " << static_cast<double>(input->value.i);
+            if (input->value.d >= 1e7 || input->value.d <= 1e-4)
+                std::cout << std::endl;
+            else
+               std::cout << ".0" << std::endl;
             break;
         case FLOAT:
             std::cout << "double: " << input->value.f;
-            input->value.f == toInt(literal) ? std::cout << ".0"
-                << std::endl : std::cout << std::endl;
+            if (input->value.d >= 1e7 || input->value.d <= 1e-4)
+                std::cout << std::endl;
+            else
+                input->value.f == toInt(literal) ? std::cout << ".0"
+                    << std::endl : std::cout << std::endl;
             break;
         case DOUBLE:
             std::cout << "double: " << input->value.d;
-            input->value.d == toInt(literal) ? std::cout << ".0"
-                << std::endl : std::cout << std::endl;
+            if (input->value.d >= 1e7 || input->value.d <= 1e-4)
+                std::cout << std::endl;
+            else
+                input->value.d == toInt(literal) ? std::cout << ".0"
+                    << std::endl : std::cout << std::endl;
             break;
         default:
             break;
@@ -317,15 +358,11 @@ void    printDouble(t_type *input, std::string & literal)
 void    ScalarConverter::convert(std::string literal)
 {
     t_type  input;
-    
-    if (!isPseudoLiteral(literal) || !isChar(literal) || !isInt(literal)
-        || !isFloat(literal) || !isDouble(literal))
-        throw "Invalid literal";
          
     convertInput(literal, &input);
-    
+
     printChar(&input);
-    printInt(&input);
+    printInt(&input, literal);
     printFloat(&input, literal);
     printDouble(&input, literal);
  
