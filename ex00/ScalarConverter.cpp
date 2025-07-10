@@ -73,41 +73,41 @@ bool	typeLimit(std::string const & literal, std::string type)
 bool	isChar(std::string const & literal)
 {
 	int len = literal.length();
-		
+
 	if (len == 1 && !std::isdigit(literal[0]))
 		return true;
-		
+
 	return false;
 }
 
 bool isFloat(std::string const & literal)
 {
-	std::size_t	dot = literal.find_first_not_of(".");
-	
 	if (literal.length() > 3 && literal.at(literal.length() - 1) == 'f'
-	&& dot != std::string::npos)
-	return true;
-	
+	    && literal.find(".") != std::string::npos)
+	    return true;
+
 	return false;
 }
 
 bool isDouble(std::string const & literal)
 {
 	if (!isFloat(literal) && literal.find(".") != std::string::npos)
-	return true;
-	
+	    return true;
+
 	return false;
 }
 
 bool	isInt(std::string const & literal)
 {
-	return !isFloat(literal) && typeLimit(literal, "INT");
+	return !isFloat(literal) && !isDouble(literal)
+	    && typeLimit(literal, "INT");
 }
 
 char	toChar(std::string const & literal)
 {
 	std::stringstream	ss(literal);
 	char	c;
+
 	ss >> c;
 	return c;
 }
@@ -118,7 +118,6 @@ int		toInt(std::string const & literal)
 	int	i;
 
 	ss >> i;
-
 	return i;
 }
 
