@@ -4,6 +4,7 @@
 # include <string>
 # include <stdint.h>
 # include "Data.hpp"
+
 class Serializer
 {
     public:
@@ -12,14 +13,11 @@ class Serializer
     
     private:
         Serializer();
-        Serializer(char c, int i, float f, double d);
         Serializer(Serializer const & src);
         ~Serializer();
 
         Serializer& operator=(Serializer const & rhs);
     
 };
-
-std::ostream& operator<<(std::ostream& out, Serializer& src);
 
 #endif

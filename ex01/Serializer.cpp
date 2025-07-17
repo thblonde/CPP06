@@ -25,10 +25,12 @@ Serializer& Serializer::operator=(Serializer const & rhs)
 
 uintptr_t   Serializer::serialize(Data *ptr)
 {
+    std::cout << "Serialization" << std::endl;
     return reinterpret_cast<uintptr_t>(ptr);
 }
 
 Data    *Serializer::deserialize(uintptr_t raw)
 {
+    std::cout << "Deserialization" << std::endl;
     return reinterpret_cast<Data*>(raw);
 }

@@ -19,8 +19,6 @@ class Data
         double  getDouble() const;
 
     private:
-
-    
         char    c;
         int     i;
         float   f;
