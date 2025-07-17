@@ -34,30 +34,21 @@ void identify(Base& p)
         static_cast<void>(refA);
         std::cout << "type referenced: A" << std::endl;
     }
-    catch(const std::exception& e)
-    {
-        ;
-    }
+    catch(const std::exception& e) {}
     try
     {
         B& refB = dynamic_cast<B&>(p);
         static_cast<void>(refB);
         std::cout << "type referenced: B" << std::endl;
     }
-    catch(const std::exception& e)
-    {
-        ;
-    }
+    catch(const std::exception& e) {}
     try
     {
         C& refC = dynamic_cast<C&>(p);
         static_cast<void>(refC);
         std::cout << "type referenced: C" << std::endl;
     }
-    catch(const std::exception& e)
-    {
-        ;
-    }
+    catch(const std::exception& e) {}
 }
 
 int main()
