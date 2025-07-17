@@ -1,7 +1,7 @@
 #include "ScalarConverter.hpp"
 #include <cctype>
+#include <cfloat>
 #include <exception>
-#include <pthread.h>
 #include <string>
 
 ScalarConverter::ScalarConverter()
@@ -64,7 +64,7 @@ bool	typeLimit(std::string const & literal, std::string type)
 		std::stringstream	ss(literal);
 		long double	test_limit;
 		ss >> test_limit;
-		if (test_limit > DBL_MAX || test_limit < FLT_MIN)
+		if (test_limit > DBL_MAX || test_limit < DBL_MIN)
 			return false;
 	}
 	return true;
@@ -136,7 +136,7 @@ float	toFloat(std::string const & literal)
 	return f;
 }
 
-float	toDouble(std::string const & literal)
+double	toDouble(std::string const & literal)
 {
 	std::stringstream	ss(literal);
 	double	f;
@@ -278,14 +278,14 @@ void    printFloat(t_type *input, std::string & literal)
             break;
         case INT:
             std::cout << "float: " << static_cast<float>(input->value.i);
-             if (input->value.d >= 1e7 || input->value.d <= 1e-4)
+            if (input->value.d >= 1e7 || input->value.d <= 1e-4)
                 std::cout << "f" << std::endl;
             else
                 std::cout << ".0f" << std::endl;
             break;
         case FLOAT:
             std::cout << "float: " << input->value.f;
-             if (input->value.f >= 1e7 || input->value.f <= 1e-4)
+            if (input->value.f >= 1e7 || input->value.f <= 1e-4)
                 std::cout << "f" << std::endl;
             else
                 input->value.f == toInt(literal) ? std::cout << ".0f"
